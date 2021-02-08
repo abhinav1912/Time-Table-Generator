@@ -1,39 +1,69 @@
 package com.company;
 
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Scanner;
 
 public class Main {
 
-    public static void main(String[] args) {
-        System.out.println("Time Table Generator");
-        System.out.println("");
+    public static Map<String, String[]> loadData(String streamFile){
         System.out.println("Checking if stream data exists.");
-        String streamFile = "streams.txt";
-        boolean fileExists = FileHelper.checkFileExistence(streamFile);
+
+        // checking if streamFile exists
+        boolean fileExists = HelperFunctions.checkFileExistence(streamFile);
 
         if (!fileExists){
-            System.out.println("streams.txt not found, attempting initialisation. \n");
-            boolean fileCreated = FileHelper.createFile(streamFile);
+            // create a new file
+            System.out.println(streamFile+" not found, creating new file. \n");
+            boolean fileCreated = HelperFunctions.createFile(streamFile);
             if (!fileCreated){
+                // exiting on file creation error
                 System.out.println("Terminating execution.");
-                return;
+                return null;
             }
             else {
                 System.out.println(streamFile+" successfully created.");
             }
         }
-        else {
-            System.out.println("File found, skipping initialisation.");
-        }
 
-        System.out.println("Attempting Initialisation.");
-        Map<String, String[]> streams = FileHelper.initialiseStreamList();
-        boolean success = FileHelper.writeFile(streamFile, streams);
-        if (success) {
-            System.out.println("Success.");
+        // check if file contains data or not
+        boolean isFileEmpty = HelperFunctions.isFileEmpty(streamFile);
+
+        if (isFileEmpty){
+            System.out.println("Empty file, attempting initialisation");
+            // fetch a map of all streams
+            Map<String, String[]> streamData = HelperFunctions.initialiseStreamList();
+            // write stream data to file
+            HelperFunctions.writeFile(streamFile, streamData);
+            boolean success = HelperFunctions.writeFile(streamFile, streamData);
+            if (success) {
+                System.out.println("Stream successfully saved to file.");
+                return streamData;
+            }
+            else {
+                System.out.println("Terminating execution");
+                return null;
+            }
         }
         else {
-            System.out.println("Fail");
+            // loading stream data from file
+            Map<String, String[]> streamData = HelperFunctions.readFile(streamFile);
+            System.out.println("Data successfully read from file.");
+            return streamData;
+        }
+    }
+
+
+    public static void main(String[] args) {
+        System.out.println("Time Table Generator\n");
+        Map<String, String[]> streamData = loadData("streams.txt");
+
+        // create a count list for all subjects/teachers
+        Map<String, Integer> subjectList = new HashMap<>();
+        for (Map.Entry<String, String[]> entry : streamData.entrySet()){
+            for (String i : entry.getValue()){
+                subjectList.put(i, 0);
+            }
         }
 
     }
