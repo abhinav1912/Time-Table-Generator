@@ -1,9 +1,6 @@
 package com.company;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -43,9 +40,22 @@ public class HelperFunctions {
         return (file.length() == 0);
     }
 
-    public static Map<String, String[]> readFile(String filename){
-        // process
-        return null;
+    public static Map<String, String[]> readFile(String filename) {
+        Map<String, String[]> streams = new HashMap<>();
+        String line;
+        try {
+            BufferedReader reader = new BufferedReader(new FileReader(filename));
+            while ((line = reader.readLine()) != null) {
+                String[] parts = line.split(":", 2);
+                String[] subjects = parts[1].substring(1, parts[1].length()-1).split(",");
+                streams.put(parts[0], subjects);
+            }
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return streams;
     }
 
     public static boolean writeFile(String filename, Map<String, String[]> data){
@@ -73,36 +83,48 @@ public class HelperFunctions {
     }
 
     public static Map<String, Integer> getSectionCount(){
-        Scanner scanner = new Scanner(System.in);
         Map<String, Integer> sectionCount = new HashMap<>();
-
+        InputStream in = System.in;
+        try{
+            System.setIn(new FileInputStream(new File("section_count.txt")));
+        }catch (FileNotFoundException f){
+            f.printStackTrace();
+        }
+        Scanner scanner = new Scanner(System.in);
         System.out.println("Enter the number of Science sections:");
         sectionCount.put("science", scanner.nextInt());
         System.out.println("Enter the number of Commerce sections:");
         sectionCount.put("commerce", scanner.nextInt());
         System.out.println("Enter the number of Arts sections:");
         sectionCount.put("arts", scanner.nextInt());
-
+        System.setIn(in);
         return sectionCount;
     }
 
     public static Map<String, Map<String, Integer>> getLectureCount(Map<String, String[]> streamData){
+        InputStream in = System.in;
+        try{
+            System.setIn(new FileInputStream(new File("lecture_count.txt")));
+        }catch (FileNotFoundException f){
+            f.printStackTrace();
+        }
         Scanner scanner = new Scanner(System.in);
         Map<String, Map<String, Integer>> lectureCount = new HashMap<>();
-        for(Map.Entry<String, String[]> entry : streamData.entrySet()){
+        for(String entry : streamData.keySet()){
             Map<String, Integer> counter = new HashMap<>();
-            System.out.println("Getting lecture count for stream " + entry.getKey());
+            System.out.println("Getting lecture count for stream " + entry);
             System.out.println("Enter the number of lectures for following subjects:");
+            String[] list = streamData.get(entry);
             boolean isDataInvalid = true, isNegative = true;
             while (isDataInvalid || isNegative){
                 Integer hours, totalHours = 0;
                 isNegative = false;
                 isDataInvalid = true;
-                for (String i : entry.getValue()){
+                for (String i : list){
                     System.out.println(i);
                     hours = scanner.nextInt();
                     if (hours <= 0) isNegative = true;
-                    counter.put(i, scanner.nextInt());
+                    counter.put(i, hours);
                     totalHours += hours;
                 }
                 if (totalHours == 36){
@@ -111,15 +133,17 @@ public class HelperFunctions {
                 else System.out.println("Total hours must be 36, try again.\n");
                 if (isNegative) System.out.println("Non-positive value detected, try again.\n");
             }
-            lectureCount.put(entry.getKey(), counter);
+            lectureCount.put(entry, counter);
         }
-
+        System.setIn(in);
         return lectureCount;
     }
 
-    public static void getData(Map<String, String[]> streamData, Map<String, Integer> subjectList){
-        boolean isDataValid = false;
-        while (isDataValid){
+    public static Batch getData(Map<String, String[]> streamData, Map<String, Integer> subjectsList){
+        boolean isDataInvalid = true;
+        while (isDataInvalid){
+            isDataInvalid = false;
+            Map<String, Integer> subjectList = new HashMap<>(subjectsList);
             Map<String, Integer> sectionCount = getSectionCount();
             Map<String, Map<String, Integer>> lectureCount = getLectureCount(streamData);
             for (Map.Entry<String, Integer> entry : sectionCount.entrySet()){
@@ -131,7 +155,30 @@ public class HelperFunctions {
                     subjectList.put(subject.getKey(), current);
                 }   
             }
+            for (String subject : subjectList.keySet()){
+                System.out.printf("%s %d\n", subject, subjectList.get(subject));
+                if (subjectList.get(subject) > 36) {
+                    System.out.println("36 hours exceeded, try again.");
+                    isDataInvalid = true;
+                }
+            }
+
+            if (!isDataInvalid){
+                Map<String, Subject> subjectObjects = new HashMap<>();
+                Map<String, Stream> streamObjects = new HashMap<>();
+                for (String stream : streamData.keySet()){
+                    Stream newStream = new Stream(stream, sectionCount.get(stream), lectureCount.get(stream));
+                    streamObjects.put(stream, newStream);
+                }
+                Integer i = 0;
+                for (String subject : subjectList.keySet()){
+                    subjectObjects.put(subject, new Subject(subject, subjectList.get(subject)));
+                }
+                Batch batch = new Batch(streamObjects, subjectObjects);
+                return batch;
+            }
         }
+        return null;
     }
 }
 

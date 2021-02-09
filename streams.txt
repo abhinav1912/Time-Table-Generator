@@ -1,0 +1,3 @@
+science:[English, Math, Physics, Chemistry, CS]
+commerce:[English, Math, Accounts, Economics, Business]
+arts:[English, Politics, History, Economics, Psychology]

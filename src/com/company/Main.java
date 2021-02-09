@@ -1,5 +1,8 @@
 package com.company;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
@@ -66,5 +69,9 @@ public class Main {
             }
         }
 
+        Batch batch = HelperFunctions.getData(streamData, subjectList);
+        Map<String, Subject> subjectObjects = batch.getSubjectObjects();
+        Map<String, Stream> streamObjects = batch.getStreamObjects();
+        System.out.println("Success!");
     }
 }
