@@ -1,10 +1,7 @@
 package com.company;
 
 import java.io.*;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Scanner;
+import java.util.*;
 
 public class HelperFunctions {
     public static boolean createFile(String filename){
@@ -91,11 +88,11 @@ public class HelperFunctions {
             f.printStackTrace();
         }
         Scanner scanner = new Scanner(System.in);
-        System.out.println("Enter the number of Science sections:");
+        System.out.println("Reading the number of Science sections.");
         sectionCount.put("science", scanner.nextInt());
-        System.out.println("Enter the number of Commerce sections:");
+        System.out.println("Reading the number of Commerce sections.");
         sectionCount.put("commerce", scanner.nextInt());
-        System.out.println("Enter the number of Arts sections:");
+        System.out.println("Reading the number of Arts sections.");
         sectionCount.put("arts", scanner.nextInt());
         System.setIn(in);
         return sectionCount;
@@ -112,8 +109,7 @@ public class HelperFunctions {
         Map<String, Map<String, Integer>> lectureCount = new HashMap<>();
         for(String entry : streamData.keySet()){
             Map<String, Integer> counter = new HashMap<>();
-            System.out.println("Getting lecture count for stream " + entry);
-            System.out.println("Enter the number of lectures for following subjects:");
+            System.out.println("Getting lecture count for subjects. " + entry);
             String[] list = streamData.get(entry);
             boolean isDataInvalid = true, isNegative = true;
             while (isDataInvalid || isNegative){
@@ -121,7 +117,6 @@ public class HelperFunctions {
                 isNegative = false;
                 isDataInvalid = true;
                 for (String i : list){
-                    System.out.println(i);
                     hours = scanner.nextInt();
                     if (hours <= 0) isNegative = true;
                     counter.put(i, hours);
@@ -136,6 +131,7 @@ public class HelperFunctions {
             lectureCount.put(entry, counter);
         }
         System.setIn(in);
+        System.out.println("Lecture Count successfully read.");
         return lectureCount;
     }
 
@@ -156,7 +152,7 @@ public class HelperFunctions {
                 }   
             }
             for (String subject : subjectList.keySet()){
-                System.out.printf("%s %d\n", subject, subjectList.get(subject));
+                System.out.printf("Hours for %s: %d\n", subject, subjectList.get(subject));
                 if (subjectList.get(subject) > 36) {
                     System.out.println("36 hours exceeded, try again.");
                     isDataInvalid = true;
@@ -180,5 +176,29 @@ public class HelperFunctions {
         }
         return null;
     }
+
+    public static Map<String, Integer> sortByValue(Map<String, Integer> hm)
+    {
+        // Create a list from elements of HashMap
+        List<Map.Entry<String, Integer> > list =
+                new LinkedList<Map.Entry<String, Integer> >(hm.entrySet());
+
+        // Sort the list
+        Collections.sort(list, new Comparator<Map.Entry<String, Integer> >() {
+            public int compare(Map.Entry<String, Integer> o1,
+                               Map.Entry<String, Integer> o2)
+            {
+                return (o1.getValue()).compareTo(o2.getValue());
+            }
+        });
+
+        // put data from sorted list to hashmap
+        HashMap<String, Integer> temp = new LinkedHashMap<String, Integer>();
+        for (Map.Entry<String, Integer> aa : list) {
+            temp.put(aa.getKey(), aa.getValue());
+        }
+        return temp;
+    }
+
 }
 

@@ -3,9 +3,7 @@ package com.company;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Scanner;
+import java.util.*;
 
 public class Main {
 
@@ -71,7 +69,36 @@ public class Main {
 
         Batch batch = HelperFunctions.getData(streamData, subjectList);
         Map<String, Subject> subjectObjects = batch.getSubjectObjects();
-        Map<String, Stream> streamObjects = batch.getStreamObjects();
-        System.out.println("Success!");
+//        Section test = new Section(66, "test");
+//        subjectObjects.get("English").getFreeSlot(test);
+//        subjectObjects.get("English").getFreeSlot(test);
+//        subjectObjects.get("English").printSchedule();
+        Map<String, Stream> streamObjects = new HashMap<>(batch.getStreamObjects());
+        for (String key : streamObjects.keySet()){
+            Stream stream = streamObjects.get(key);
+            for (String subject : stream.lectureCount.keySet()){
+                Integer count = stream.lectureCount.get(subject);
+                for (Section section : stream.sections.values()){
+                    for (Integer i =0; i<count; i++){
+                        subjectObjects.get(subject).getFreeSlot(section);
+                    }
+                }
+            }
+        }
+
+        for (Subject subject : subjectObjects.values()){
+            System.out.println(subject.name);
+            subject.printSchedule();
+            System.out.println();
+        }
+
+        for (String stream : streamObjects.keySet()){
+            Stream s = streamObjects.get(stream);
+            System.out.println(stream);
+            for (Section section : s.sections.values()){
+                System.out.println(section._id);
+                section.printSchedule();
+            }
+        }
     }
 }
